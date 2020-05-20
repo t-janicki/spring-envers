@@ -5,6 +5,11 @@ import org.springframework.data.history.Revision;
 import org.springframework.data.history.Revisions;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RequestMapping(value = "/api", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
@@ -57,14 +62,26 @@ public class BookController {
         return "Book deleted";
     }
 
-    @GetMapping(value = "/book/revision/{id}")
-    public Book getInfo(@PathVariable Long id) {
+    @GetMapping(value = "/book/revision/{bookId}")
+    public List<BookRevisionDto> getInfo(@PathVariable Long bookId) {
 
-        Revisions<Long, Book> test = bookRepository.findRevisions(id);
-        Book book = test.stream().map(Revision::getEntity).findFirst().get();
-        System.out.println(test.stream().map(v -> v.getMetadata().getRevisionNumber().get()));
+        Revisions<Long, Book> bookRevisions = bookRevisionRepository.findRevisions(bookId);
+        List<BookRevisionDto> bookRevisionsDto = bookRevisions.stream()
+                .map(revision -> BookRevisionDto.builder()
+                        .revisionDate(LocalDateTime.ofInstant(revision.getMetadata().getRequiredRevisionInstant(), ZoneId.of("Europe/Warsaw")))
+                        .revisionType(revision.getMetadata().getRevisionType().name())
+                        .pages(revision.getEntity().getPages())
+                        .title(revision.getEntity().getTitle())
+                        .id(revision.getEntity().getId())
+                        .build())
+                .collect(Collectors.toList());
+
+
+        System.out.println(bookRevisions.stream().map(v -> v.getMetadata().getRevisionNumber().get()));
+        System.out.println(bookRevisions.stream().map(Revision::getRevisionInstant).collect(Collectors.toList()));
+        System.out.println(bookRevisions.stream().map(Revision::getMetadata).collect(Collectors.toList()));
         System.out.println();
-        System.out.println(bookRevisionRepository.findLastChangeRevision(id));
-        return book;
+        System.out.println(bookRevisionRepository.findLastChangeRevision(bookId));
+        return bookRevisionsDto;
     }
 }
