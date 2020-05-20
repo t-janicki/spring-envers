@@ -10,11 +10,10 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Audited
+@Entity(name = "books")
 public class Book {
 
     @Id
@@ -22,8 +21,13 @@ public class Book {
     private Long id;
 
     @Column
-    private String name;
+    @Audited
+    private String title;
 
     @Column
+    @Audited
     private Integer pages;
+
+    @Column
+    private String author;
 }
