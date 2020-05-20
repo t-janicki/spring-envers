@@ -3,6 +3,7 @@ package com.envers;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.history.Revision;
 import org.springframework.data.history.Revisions;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -29,13 +30,24 @@ public class BookController {
         this.bookStoreRepository = bookStoreRepository;
     }
 
+    @Transactional
+    @PutMapping(value = "/bookstore/{id}/name/{name}")
+    public BookStore updateName(@PathVariable Long id, @PathVariable String name) {
+        BookStore bookStore = bookStoreRepository.findById(id).orElseThrow(() -> new RuntimeException("Bookstore not found."));
+        bookStore.setName(name);
+        return bookStoreRepository.save(bookStore);
+    }
+
+    @Transactional
     @PostMapping(value = "/bookstore")
     public BookStore createBookstore() {
         BookStore newBookStore = new BookStore();
         newBookStore.setName("Bookstore");
+        newBookStore.setBooks(List.of());
         return bookStoreRepository.save(newBookStore);
     }
 
+    @Transactional
     @PostMapping(value = "/book/bookstoreId/{bookstoreId}")
     public Book saveBook(@RequestBody Book book, @PathVariable Long bookstoreId) {
         Book newBook = bookRepository.save(book);
@@ -47,6 +59,7 @@ public class BookController {
         return newBook;
     }
 
+    @Transactional
     @PutMapping(value = "/book/{id}/{pages}")
     public String updateBook(@PathVariable(name = "id") Long id, @PathVariable(name = "pages") Integer pages) {
         Book book = bookRepository.findById(id).get();
@@ -56,6 +69,7 @@ public class BookController {
         return "Book updated";
     }
 
+    @Transactional
     @DeleteMapping(value = "/book")
     public String deleteBook(@PathVariable Long id) {
         bookRepository.deleteById(id);

@@ -19,6 +19,7 @@ public class BookStore {
     private Long id;
 
     @Column
+//    @Audited
     private String name;
 
     @OneToMany
